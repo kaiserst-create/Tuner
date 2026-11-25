@@ -1,0 +1,227 @@
+/* Tuner (Farben und Stimmgerät wie in „Songwriting & Chords“) */
+
+:root {
+  --bg: #f5f3ee;
+  --flaeche: #ffffff;
+  --flaeche-2: #f8f7f3;
+  --linie: #e3e0d8;
+  --text: #22232a;
+  --leise: #6a6c75;
+  --akzent: #3056a0;
+  --akzent-text: #ffffff;
+  --akzent-weich: #e8eef9;
+  --akzent-rand: #b9c9ea;
+  --warm: #b4552d;
+  --warm-weich: #f8ebe3;
+  --gut: #2b7f3e;
+  --gut-weich: #e2f2e6;
+  --g-ink: #222222;
+  --g-gitter: #8a8a8a;
+  --g-x: #9a9a9a;
+  --schatten: 0 1px 2px rgba(30, 30, 40, .05), 0 4px 16px rgba(30, 30, 40, .05);
+  --radius: 14px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14161b; --flaeche: #1c1f26; --flaeche-2: #22262e; --linie: #2f333d; --text: #e9e9ec; --leise: #a1a5af;
+    --akzent: #8fb0ff; --akzent-text: #10131a; --akzent-weich: #232d45; --akzent-rand: #3c4f7d;
+    --warm: #f0a07a; --warm-weich: #3a2a22;
+    --gut: #6fd08e; --gut-weich: #1d3426;
+    --g-ink: #ececf0; --g-gitter: #737885; --g-x: #8b909b;
+    --schatten: 0 1px 2px rgba(0, 0, 0, .3), 0 4px 16px rgba(0, 0, 0, .25);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14161b; --flaeche: #1c1f26; --flaeche-2: #22262e; --linie: #2f333d; --text: #e9e9ec; --leise: #a1a5af;
+  --akzent: #8fb0ff; --akzent-text: #10131a; --akzent-weich: #232d45; --akzent-rand: #3c4f7d;
+  --warm: #f0a07a; --warm-weich: #3a2a22;
+  --gut: #6fd08e; --gut-weich: #1d3426;
+  --g-ink: #ececf0; --g-gitter: #737885; --g-x: #8b909b;
+  --schatten: 0 1px 2px rgba(0, 0, 0, .3), 0 4px 16px rgba(0, 0, 0, .25);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.5 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+h1, h2, h3 { margin: 0; line-height: 1.2; letter-spacing: -.01em; }
+button, select, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+.leise { color: var(--leise); }
+[hidden] { display: none !important; }
+
+/* ------------------------------------------------ Kopf */
+.kopf {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  max-width: 600px; margin: 0 auto; padding: 18px 20px 8px;
+}
+.marke { display: flex; align-items: center; gap: 12px; }
+.logo { width: 44px; height: 44px; flex: none; }
+.kopf h1 { font-size: 1.45rem; font-weight: 750; }
+.untertitel { margin: 2px 0 0; color: var(--leise); font-size: .9rem; }
+
+.segment {
+  display: inline-flex; background: var(--flaeche-2); border: 1px solid var(--linie); border-radius: 999px; padding: 3px; gap: 2px;
+  max-width: 100%; overflow-x: auto; scrollbar-width: none;
+}
+.segment button {
+  border: 0; background: transparent; padding: 7px 14px; border-radius: 999px; font-weight: 600; color: var(--leise);
+  transition: background .15s, color .15s; white-space: nowrap;
+}
+.segment button[aria-checked="true"] { background: var(--akzent); color: var(--akzent-text); }
+.segment button:focus-visible, .icon-knopf:focus-visible { outline: 2px solid var(--akzent); outline-offset: 2px; }
+
+.icon-knopf {
+  width: 40px; height: 40px; border-radius: 999px; border: 1px solid var(--linie); background: var(--flaeche);
+  display: grid; place-items: center; padding: 0;
+}
+.icon-knopf svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+.icon-knopf .mond { fill: currentColor; stroke: none; }
+.icon-knopf .mond { display: none; }
+:root[data-theme="dark"] .icon-knopf .sonne { display: none; }
+:root[data-theme="dark"] .icon-knopf .mond { display: block; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .icon-knopf .sonne { display: none; }
+  :root:not([data-theme="light"]) .icon-knopf .mond { display: block; }
+}
+
+.karte { background: var(--flaeche); border: 1px solid var(--linie); border-radius: var(--radius); box-shadow: var(--schatten); }
+
+/* ------------------------------------------------ Felder, Chips, Knöpfe */
+.feld { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.feld > span, .sg-kt-kopf > span { font-size: .75rem; font-weight: 650; text-transform: uppercase; letter-spacing: .05em; color: var(--leise); }
+select {
+  appearance: none; -webkit-appearance: none;
+  background: var(--flaeche-2); border: 1px solid var(--linie); border-radius: 10px; padding: 8px 12px; min-height: 38px;
+  min-width: 0; max-width: 100%;
+  padding-right: 32px;
+  background-image: linear-gradient(45deg, transparent 50%, var(--leise) 50%), linear-gradient(135deg, var(--leise) 50%, transparent 50%);
+  background-position: calc(100% - 17px) 52%, calc(100% - 12px) 52%;
+  background-size: 5px 5px; background-repeat: no-repeat;
+}
+select:focus, input:focus { outline: 2px solid var(--akzent); outline-offset: 1px; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  border: 1px solid var(--linie); background: var(--flaeche-2); border-radius: 999px; padding: 5px 11px; font-size: .88rem; font-weight: 600;
+  color: var(--leise);
+}
+.chip[aria-pressed="true"] { background: var(--akzent-weich); border-color: var(--akzent-rand); color: var(--text); }
+
+.klein-text { font-size: .85rem; margin: 6px 0 0; }
+.knopf {
+  border: 1px solid var(--akzent); background: var(--akzent); color: var(--akzent-text); border-radius: 999px; padding: 8px 16px; font-weight: 650;
+  display: inline-flex; align-items: center; gap: 7px;
+}
+.knopf.zweit { background: transparent; color: var(--akzent); }
+.knopf.klein { padding: 6px 13px; font-size: .88rem; }
+.knopf:disabled { opacity: .45; cursor: default; }
+.mini { width: auto !important; height: auto !important; padding: 3px 10px !important; font-size: .78rem !important; color: var(--akzent); }
+.knopf svg { width: 14px; height: 14px; fill: currentColor; }
+
+/* ------------------------------------------------ Stimmgerät (hier die ganze Seite) */
+.seite { max-width: 600px; margin: 0 auto; padding: 10px 20px 24px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.sg-inst { justify-self: start; }
+.sg-zeile { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: flex-end; }
+.sg-zeile .feld { flex: 1 1 220px; }
+.sg-zeile select { width: 100%; }
+.sg-zeile .sg-kt-feld { flex-basis: 340px; }   /* lieber eigene Zeile als ein winziger Regler */
+.sg-kt .mini { white-space: nowrap; }
+.sg-kt-kopf { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.sg-kt-kopf .knopf { padding: 4px 12px; }
+.sg-kt-kopf .knopf[aria-pressed="true"] { background: var(--akzent); color: var(--akzent-text); }
+.sg-kt { display: flex; align-items: center; gap: 8px; min-height: 38px; }
+.sg-kt input[type="range"] { flex: 1; width: 0; min-width: 60px; accent-color: var(--akzent); }
+.sg-kt output { font-weight: 700; min-width: 58px; text-align: center; font-variant-numeric: tabular-nums; }
+.icon-knopf.klein { width: 34px; height: 34px; flex: none; font-size: 1.15rem; font-weight: 700; line-height: 1; color: var(--text); }
+.sg-anzeige { padding: 14px 16px 18px; display: grid; justify-items: center; gap: 8px; text-align: center; }
+.sg-skala { width: 100%; max-width: 400px; height: auto; display: block; overflow: visible; }
+.sg-skala .bogen { fill: none; stroke: var(--linie); stroke-width: 2; }
+.sg-skala .zone { fill: none; stroke: var(--gut); stroke-width: 10; opacity: .35; }
+.sg-skala .strich { stroke: var(--g-gitter); stroke-width: 1.3; }
+.sg-skala .strich.lang { stroke: var(--text); stroke-width: 2.2; }
+.sg-skala text { fill: var(--leise); font-size: 10px; font-family: inherit; font-weight: 600; }
+.sg-nadel line { stroke: var(--text); stroke-width: 3.2; stroke-linecap: round; }
+.sg-nabe { fill: var(--text); }
+.sg-ton { font-size: 4.4rem; font-weight: 750; line-height: 1; letter-spacing: -.02em; min-height: 4.4rem; display: flex; align-items: baseline; justify-content: center; }
+.sg-ton small { font-size: 1.25rem; font-weight: 650; color: var(--leise); margin-left: 2px; }
+.sg-ton .anders { font-size: 1.3rem; font-weight: 600; color: var(--leise); margin-left: 10px; }
+.sg-ton .anders::before { content: "\2009oder\2009"; font-size: .8rem; font-weight: 500; }
+.sg-status { font-weight: 650; padding: 5px 14px; border-radius: 999px; background: var(--flaeche-2); color: var(--leise); min-height: 34px; display: inline-flex; align-items: center; font-variant-numeric: tabular-nums; }
+.sg-info { font-size: .85rem; color: var(--leise); min-height: 1.3em; font-variant-numeric: tabular-nums; }
+.sg-anzeige.gut .sg-nadel line { stroke: var(--gut); }
+.sg-anzeige.gut .sg-nabe { fill: var(--gut); }
+.sg-anzeige.gut .sg-ton { color: var(--gut); }
+.sg-anzeige.gut .sg-status { background: var(--gut-weich); color: var(--gut); }
+.sg-anzeige.daneben .sg-nadel line { stroke: var(--warm); }
+.sg-anzeige.daneben .sg-nabe { fill: var(--warm); }
+.sg-anzeige.daneben .sg-status { background: var(--warm-weich); color: var(--warm); }
+.sg-anzeige.still .sg-nadel, .sg-anzeige.still .sg-nabe { opacity: .35; }
+.sg-anzeige.still .sg-ton { color: var(--leise); }
+.sg-pegel { width: 140px; height: 4px; border-radius: 2px; background: var(--flaeche-2); border: 1px solid var(--linie); overflow: hidden; box-sizing: content-box; }
+.sg-pegel i { display: block; height: 100%; width: 0; background: var(--akzent); transition: width .08s linear; }
+.sg-saiten-feld { display: grid; justify-items: center; gap: 4px; margin-top: 6px; }
+.sg-saiten { justify-content: center; }
+.sg-saiten .chip { min-height: 40px; }
+.sg-saite { min-width: 48px; display: inline-flex; align-items: baseline; justify-content: center; font-size: 1.05rem; color: var(--text); }
+.sg-saite small { font-size: .7rem; color: var(--leise); margin-left: 1px; }
+.sg-saite.erkannt { border-color: var(--akzent); box-shadow: 0 0 0 1px var(--akzent); }
+.sg-saite.gestimmt::after { content: "\2713"; margin-left: 4px; color: var(--gut); font-size: .85rem; font-weight: 800; }
+.sg-mikro { display: grid; justify-items: center; gap: 8px; text-align: center; }
+.sg-mikro .knopf { padding: 11px 22px; font-size: 1rem; }
+.sg-mikro .knopf svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.sg-mikro .klein-text { max-width: 440px; margin: 0; }
+.sg-mikro .klein-text.warm { color: var(--warm); }
+
+.fuss { max-width: 600px; margin: 0 auto; padding: 0 20px 28px; color: var(--leise); font-size: .82rem; text-align: center; }
+.fuss p { margin: 2px 0; }
+.link-knopf { border: 0; background: none; color: var(--akzent); font-weight: 600; padding: 0; }
+#install-zeile { margin-top: 8px; }
+#install-zeile .link-knopf { font-size: .88rem; }
+
+/* ------------------------------------------------ Hinweis zum Installieren */
+html.ih-offen body { padding-bottom: calc(var(--ih-hoehe, 0px) + env(safe-area-inset-bottom)); }
+.install-hinweis {
+  position: fixed; z-index: 40; left: 0; right: 0; margin: 0 auto;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  width: min(520px, calc(100% - 24px - env(safe-area-inset-left) - env(safe-area-inset-right)));
+  display: flex; gap: 12px; align-items: flex-start;
+  background: var(--flaeche); border: 1px solid var(--akzent-rand); border-radius: 18px; padding: 14px 12px 14px 14px;
+  box-shadow: 0 2px 6px rgba(20, 20, 30, .08), 0 12px 32px rgba(20, 20, 30, .16);
+  opacity: 0; transform: translateY(16px); transition: opacity .25s ease, transform .25s ease;
+}
+.install-hinweis.da { opacity: 1; transform: none; }
+.ih-icon { width: 44px; height: 44px; border-radius: 10px; flex: none; }
+.ih-text { flex: 1; min-width: 0; display: grid; gap: 6px; font-size: .92rem; text-align: left; }
+.ih-text h2 { font-size: 1rem; }
+.ih-text p { margin: 0; }
+.ih-text ol { margin: 2px 0 0; padding-left: 20px; display: grid; gap: 4px; }
+.ih-text b { font-weight: 650; }
+.ih-text .knopf { justify-self: start; margin-top: 4px; }
+.ih-symbol { width: 18px; height: 18px; vertical-align: -3px; fill: none; stroke: var(--akzent); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.ih-zu { width: 32px; height: 32px; flex: none; margin: -4px -2px 0 0; font-size: 1.3rem; line-height: 1; color: var(--leise); }
+@media (max-width: 400px) { .ih-icon { display: none; } }
+@media (prefers-reduced-motion: reduce) { .install-hinweis { transition: none; transform: none; } }
+
+/* ------------------------------------------------ schmal */
+@media (max-width: 560px) {
+  .kopf { padding: 14px 16px 6px; }
+  .kopf h1 { font-size: 1.2rem; }
+  .untertitel { display: none; }
+  .logo { width: 38px; height: 38px; }
+  .seite { padding: 8px 16px 20px; gap: 14px; }
+  .fuss { padding-left: 16px; padding-right: 16px; }
+  .sg-ton { font-size: 3.8rem; min-height: 3.8rem; }
+}
+/* ------------------------------------------------ sehr schmal (iPhone SE der ersten Generation) */
+@media (max-width: 359px) {
+  .sg-kt { gap: 6px; }
+}
