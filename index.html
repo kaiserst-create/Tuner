@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Tuner</title>
-<meta name="description" content="Stimmgerät für Gitarre und Ukulele mit Zeiger, Referenztönen und Kammerton von 430 bis 450 Hz. Läuft offline.">
+<meta name="description" content="Stimmgerät für Gitarre und Ukulele mit Zeiger, Referenztönen und Kammerton von 430 bis 450 Hz, dazu ein Metronom. Läuft offline.">
 <meta name="theme-color" content="#f5f3ee" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#14161b" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -32,7 +32,7 @@
     </svg>
     <div>
       <h1>Tuner</h1>
-      <p class="untertitel">Stimmgerät</p>
+      <p class="untertitel">Stimmgerät und Metronom</p>
     </div>
   </div>
   <button type="button" id="thema" class="icon-knopf" aria-label="Hell oder dunkel umschalten" title="Hell oder dunkel">
@@ -41,14 +41,16 @@
   </button>
 </header>
 
-<!-- ===================================================== Stimmgerät -->
-<main id="stimmgeraet" class="seite" aria-label="Stimmgerät">
-  <div class="segment sg-inst" id="sg-inst" role="radiogroup" aria-label="Was stimmst du?">
+<main id="stimmgeraet" class="seite" aria-label="Tuner">
+  <div class="segment sg-inst" id="sg-inst" role="radiogroup" aria-label="Stimmgerät oder Metronom">
     <button type="button" role="radio" data-wert="frei">Frei</button>
     <button type="button" role="radio" data-wert="gitarre">Gitarre</button>
     <button type="button" role="radio" data-wert="ukulele">Ukulele</button>
+    <button type="button" role="radio" data-ansicht="metronom">Metronom</button>
   </div>
 
+  <!-- ===================================================== Stimmgerät -->
+  <div id="stimmen-teil" class="teil">
   <div class="sg-zeile">
     <label class="feld" id="sg-stimmung-feld"><span>Stimmung</span><select id="sg-stimmung"></select></label>
     <div class="feld sg-kt-feld">
@@ -82,6 +84,69 @@
     <button type="button" class="knopf" id="sg-mikro">Mikrofon starten</button>
     <p class="leise klein-text" id="sg-hinweis"></p>
   </div>
+  </div>
+
+  <!-- ===================================================== Metronom -->
+  <section id="metronom" class="teil" aria-label="Metronom" hidden>
+    <div class="sg-zeile">
+      <div class="feld"><span>Taktart</span>
+        <div class="segment klein" id="mt-takt" role="radiogroup" aria-label="Taktart">
+          <button type="button" role="radio" data-takt="2/4">2/4</button>
+          <button type="button" role="radio" data-takt="3/4">3/4</button>
+          <button type="button" role="radio" data-takt="4/4">4/4</button>
+          <button type="button" role="radio" data-takt="6/8">6/8</button>
+          <button type="button" role="radio" data-takt="eigen">Eigene</button>
+        </div>
+      </div>
+      <div class="feld"><span>Unterteilung</span>
+        <div class="segment klein" id="mt-teilung" role="radiogroup" aria-label="Unterteilung">
+          <button type="button" role="radio" data-teilung="1">Viertel</button>
+          <button type="button" role="radio" data-teilung="2">Achtel</button>
+          <button type="button" role="radio" data-teilung="3">Triolen</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-eigen" id="mt-eigen" hidden>
+      <div class="feld"><span>Schläge</span>
+        <div class="mt-zahl">
+          <button type="button" class="icon-knopf klein" id="mt-z-minus" aria-label="Ein Schlag weniger">−</button>
+          <output id="mt-zaehler">7</output>
+          <button type="button" class="icon-knopf klein" id="mt-z-plus" aria-label="Ein Schlag mehr">+</button>
+        </div>
+      </div>
+      <div class="feld"><span>Notenwert</span>
+        <div class="segment klein" id="mt-nenner" role="radiogroup" aria-label="Notenwert">
+          <button type="button" role="radio" data-nenner="2">2</button>
+          <button type="button" role="radio" data-nenner="4">4</button>
+          <button type="button" role="radio" data-nenner="8">8</button>
+          <button type="button" role="radio" data-nenner="16">16</button>
+        </div>
+      </div>
+      <label class="feld"><span>Betonung</span><input type="text" id="mt-gruppen" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="2+2+3"></label>
+      <p class="leise klein-text" id="mt-gruppen-hinweis"></p>
+    </div>
+
+    <div class="karte mt-anzeige">
+      <div class="mt-takt-name" id="mt-takt-name">4/4</div>
+      <div class="mt-punkte" id="mt-punkte" aria-hidden="true"></div>
+      <div class="mt-bpm" id="mt-bpm">80<small>BPM</small></div>
+      <div class="sg-kt mt-tempo">
+        <button type="button" class="icon-knopf klein" id="mt-minus" aria-label="1 BPM langsamer">−</button>
+        <input type="range" id="mt-tempo" min="30" max="250" step="1" aria-label="Tempo in BPM">
+        <button type="button" class="icon-knopf klein" id="mt-plus" aria-label="1 BPM schneller">+</button>
+      </div>
+      <div class="mt-knoepfe">
+        <button type="button" class="knopf zweit" id="mt-tippen">Tippen</button>
+        <button type="button" class="chip" id="mt-betonung" aria-pressed="true">Eins betonen</button>
+      </div>
+    </div>
+
+    <div class="sg-mikro mt-start-feld">
+      <button type="button" class="knopf" id="mt-start" aria-pressed="false">Start</button>
+      <p class="leise klein-text" id="mt-hinweis"></p>
+    </div>
+  </section>
 </main>
 
 <footer class="fuss">
@@ -104,6 +169,7 @@
 
 <script src="klang.js"></script>
 <script src="stimmen.js"></script>
+<script src="metronom.js"></script>
 <script src="installieren.js"></script>
 <script src="app.js"></script>
 </body>

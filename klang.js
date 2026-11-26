@@ -1,5 +1,5 @@
 // Tuner: Klangausgabe (Modul „Klang“ aus musik.js von „Songwriting & Chords“, ohne die Griffe)
-// Spielt die Referenztöne und den Kammerton des Stimmgeräts. Läuft auch ohne Seite
+// Spielt die Referenztöne und den Kammerton des Stimmgeräts und die Klicks des Metronoms. Läuft auch ohne Seite
 // (skripte/pruefen.js lädt sie in osascript), daher ohne DOM-Zugriff beim Laden.
 var SC = { Klang: (function () {
   'use strict';
@@ -92,12 +92,33 @@ var SC = { Klang: (function () {
       },
     };
   }
+  // Klick des Metronoms zur Zeit „wann“ (Sekunden der Klangausgabe). Er geht am Kompressor vorbei,
+  // sonst würde der die betonte Eins genauso laut machen wie die anderen Schläge. Jeder Klick hält
+  // die Klangausgabe wach, auch bei langsamem Tempo mit langen Pausen.
+  var klickWeg = null;
+  function klick(buf, wann) {
+    if (!init()) return null;
+    if (!klickWeg) { klickWeg = ctx.createGain(); klickWeg.gain.value = 0.9; klickWeg.connect(ctx.destination); }
+    var src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(klickWeg);
+    src.start(Math.max(wann || 0, ctx.currentTime));
+    aktiv.push(src);
+    src.onended = function () { var x = aktiv.indexOf(src); if (x >= 0) aktiv.splice(x, 1); src.disconnect(); };
+    return src;
+  }
+  function zeit() { return ctx ? ctx.currentTime : 0; }
+  // wie lange der Ton bis zum Lautsprecher braucht (mit Bluetooth deutlich länger), höchstens eine halbe Sekunde
+  function latenz() {
+    var l = ctx ? (ctx.baseLatency || 0) + (ctx.outputLatency || 0) : 0;
+    return l > 0 && l < 0.5 ? l : 0;
+  }
   function kontext() { return init() ? ctx : null; }
   // Kammerton A4 in Hz. Das Stimmgerät rechnet seine Töne selbst damit aus, hier wird er nur gemerkt.
   function kammerton(hz) { kt = hz; }
   function kammertonJetzt() { return kt; }
   return {
-    init: init, stopp: stopp, spiele: spiele, dauerton: dauerton, kontext: kontext, kammerton: kammerton, kammertonJetzt: kammertonJetzt,
-    sitzung: sitzung, ruhe: ruhe, zustand: zustand,
+    init: init, stopp: stopp, spiele: spiele, dauerton: dauerton, klick: klick, zeit: zeit, latenz: latenz,
+    kontext: kontext, kammerton: kammerton, kammertonJetzt: kammertonJetzt, sitzung: sitzung, ruhe: ruhe, zustand: zustand,
   };
 })() };

@@ -181,6 +181,37 @@ select:focus, input:focus { outline: 2px solid var(--akzent); outline-offset: 1p
 .sg-mikro .klein-text { max-width: 440px; margin: 0; }
 .sg-mikro .klein-text.warm { color: var(--warm); }
 
+/* ------------------------------------------------ Metronom (gleicher Aufbau wie das Stimmgerät) */
+.teil { display: grid; grid-template-columns: minmax(0, 1fr); gap: inherit; }
+.feld > .segment { align-self: flex-start; }
+.segment.klein button { padding: 6px 11px; font-size: .9rem; }
+.mt-eigen { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: flex-end; }
+.mt-eigen .klein-text { flex-basis: 100%; margin: 0; }
+.mt-eigen .klein-text.warm { color: var(--warm); }
+.mt-eigen input[type="text"] {
+  appearance: none; -webkit-appearance: none;
+  background: var(--flaeche-2); border: 1px solid var(--linie); border-radius: 10px; padding: 8px 12px; min-height: 38px; width: 8.5em; max-width: 100%;
+}
+.mt-zahl { display: flex; align-items: center; gap: 8px; min-height: 38px; }
+.mt-zahl output { font-weight: 700; min-width: 26px; text-align: center; font-variant-numeric: tabular-nums; }
+.mt-anzeige { padding: 16px 16px 18px; display: grid; justify-items: center; gap: 12px; text-align: center; }
+.mt-takt-name { font-weight: 650; color: var(--leise); font-variant-numeric: tabular-nums; }
+.mt-punkte { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 10px; min-height: 30px; }
+.mt-punkt { width: 16px; height: 16px; border-radius: 50%; background: var(--flaeche-2); border: 2px solid var(--linie); transition: background .05s, border-color .05s, transform .05s; }
+.mt-punkt.gruppe { width: 20px; height: 20px; border-color: var(--g-gitter); }
+.mt-punkt.eins { width: 26px; height: 26px; border-color: var(--text); }
+.mt-punkt.jetzt { background: var(--akzent); border-color: var(--akzent); transform: scale(1.15); }
+.mt-bpm { font-size: 4.4rem; font-weight: 750; line-height: 1; letter-spacing: -.02em; display: flex; align-items: baseline; justify-content: center; font-variant-numeric: tabular-nums; }
+.mt-bpm small { font-size: 1.1rem; font-weight: 650; color: var(--leise); margin-left: 6px; letter-spacing: 0; }
+.mt-tempo { width: 100%; max-width: 420px; }
+.mt-knoepfe { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 10px; }
+.mt-knoepfe .chip { min-height: 38px; }
+#mt-tippen { min-width: 110px; justify-content: center; touch-action: manipulation; transition: background .1s; }
+#mt-tippen.getippt { background: var(--akzent-weich); }
+#mt-start { min-width: 150px; justify-content: center; }
+#mt-start svg { fill: currentColor; stroke: none; }
+@media (prefers-reduced-motion: reduce) { .mt-punkt { transition: none; } .mt-punkt.jetzt { transform: none; } }
+
 .fuss { max-width: 600px; margin: 0 auto; padding: 0 20px 28px; color: var(--leise); font-size: .82rem; text-align: center; }
 .fuss p { margin: 2px 0; }
 .link-knopf { border: 0; background: none; color: var(--akzent); font-weight: 600; padding: 0; }
@@ -220,8 +251,15 @@ html.ih-offen body { padding-bottom: calc(var(--ih-hoehe, 0px) + env(safe-area-i
   .seite { padding: 8px 16px 20px; gap: 14px; }
   .fuss { padding-left: 16px; padding-right: 16px; }
   .sg-ton { font-size: 3.8rem; min-height: 3.8rem; }
+  .mt-bpm { font-size: 3.8rem; }
+}
+/* vier Knöpfe im Umschalter oben: etwas enger, damit alle auf schmale Handys passen */
+@media (max-width: 420px) {
+  .sg-inst button { padding: 7px 11px; }
 }
 /* ------------------------------------------------ sehr schmal (iPhone SE der ersten Generation) */
 @media (max-width: 359px) {
   .sg-kt { gap: 6px; }
+  .sg-inst button { padding: 6px 8px; font-size: .88rem; }
+  .segment.klein button { padding: 6px 8px; font-size: .86rem; }
 }

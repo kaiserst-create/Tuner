@@ -6,6 +6,8 @@
 //  4. Seite: Reihenfolge Frei, Gitarre, Ukulele, Start auf Frei; jede Datei, die die Seite lädt, steht im Service Worker und existiert
 //  5. Syntax von app.js und sw.js, jede gesuchte ID in index.html, keine Gedankenstriche in Texten, Icon-Größen
 //  6. Hinweis zum Installieren: richtiges Gerät und richtiger Text (wie in web_pruefen.js der Songwriting-App)
+//  7. Metronom: Taktarten, eigene Taktart mit Gruppen, Betonungen, Zeitplan auf die Nanosekunde, Tempowechsel,
+//     Tippen fürs Tempo, Klickklänge, Rückfall bei unbrauchbaren Einstellungen
 //
 // Aufruf: osascript -l JavaScript skripte/pruefen.js
 
@@ -34,7 +36,8 @@ function run() {
   // im globalen Bereich laden, wie <script> im Browser
   (0, eval)(lies(basis + '/klang.js') + '\n;globalThis.SC = SC;');
   (0, eval)(lies(basis + '/stimmen.js') + '\n;globalThis.SC_STIMMEN = SC_STIMMEN;');
-  const T = globalThis.SC_STIMMEN, K = globalThis.SC.Klang;
+  (0, eval)(lies(basis + '/metronom.js') + '\n;globalThis.SC_METRONOM = SC_METRONOM;');
+  const T = globalThis.SC_STIMMEN, K = globalThis.SC.Klang, M = globalThis.SC_METRONOM;
 
   // ---------------------------------------------------------------- 1. Tonerkennung: jede Saite auf 1 Cent genau?
   let zufall = 4711;
@@ -125,7 +128,8 @@ function run() {
   K.kammerton(432);
   if (K.kammertonJetzt() !== 432) melde('Klang: Kammerton nicht übernommen');
   K.stopp();
-  for (const f of ['init', 'sitzung', 'stopp', 'spiele', 'dauerton', 'kontext', 'kammerton', 'ruhe', 'zustand']) {
+  if (K.zeit() !== 0 || K.latenz() !== 0 || K.klick(null, 0) !== null) melde('Klang: Klick oder Uhr ohne Seite falsch');
+  for (const f of ['init', 'sitzung', 'stopp', 'spiele', 'dauerton', 'klick', 'zeit', 'latenz', 'kontext', 'kammerton', 'ruhe', 'zustand']) {
     if (typeof K[f] !== 'function') melde('Klang: ' + f + ' fehlt');
   }
 
@@ -134,6 +138,9 @@ function run() {
   const inst = /<div[^>]*id="sg-inst"[^>]*>([\s\S]*?)<\/div>/.exec(html);
   const reihe = inst ? [...inst[1].matchAll(/data-wert="([^"]+)"/g)].map(m => m[1]).join(' ') : '';
   if (reihe !== 'frei gitarre ukulele') melde('Umschalter: Reihenfolge „' + reihe + '“ statt „frei gitarre ukulele“');
+  const beschriftung = inst ? [...inst[1].matchAll(/<button[^>]*>([^<]*)<\/button>/g)].map(m => m[1]).join(' ') : '';
+  if (beschriftung !== 'Frei Gitarre Ukulele Metronom' || !/data-ansicht="metronom">Metronom</.test(inst ? inst[1] : '')) melde('Umschalter: „' + beschriftung + '“ statt „Frei Gitarre Ukulele Metronom“');
+  if (!/ansicht: 'stimmen'/.test(lies(basis + '/app.js'))) melde('Start: app.js beginnt nicht mit dem Stimmgerät');
   // Start auf Frei, auch wenn der gespeicherte Wert unbrauchbar ist
   if (!/var S = \{\s*stInst: 'frei',/.test(lies(basis + '/app.js'))) melde('Start: app.js beginnt nicht mit Frei');
   for (const kaputt of [undefined, 'bass', 7]) {
@@ -162,13 +169,14 @@ function run() {
   [...html.matchAll(/\sid="([^"]+)"/g)].forEach(m => { ids[m[1]] = (ids[m[1]] || 0) + 1; });
   Object.keys(ids).forEach(id => { if (ids[id] > 1) melde('index.html: ID ' + id + ' doppelt'); });
   const stimmenJs = lies(basis + '/stimmen.js'), appJs = lies(basis + '/app.js'), installJs = lies(basis + '/installieren.js');
-  const gesucht = [...stimmenJs.matchAll(/\$\('([a-z-]+)'\)/g)].map(m => m[1])
+  const metronomJs = lies(basis + '/metronom.js');
+  const gesucht = [...(stimmenJs + metronomJs).matchAll(/\$\('([a-z-]+)'\)/g)].map(m => m[1])
     .concat([...appJs.matchAll(/\$\('#([a-z-]+)'\)/g)].map(m => m[1]))
     .concat([...installJs.matchAll(/getElementById\('([a-z-]+)'\)/g)].map(m => m[1]));
   for (const id of gesucht) if (!ids[id] && id !== 'sg-nadel') melde('index.html: ID ' + id + ' fehlt');
   // keine Gedankenstriche in sichtbaren Texten (einzelnes „–“ als Platzhalter ist erlaubt)
   const texte = html.replace(/<!--[\s\S]*?-->/g, '').replace(/<script[\s\S]*?<\/script>/g, '').split(/<[^>]+>/)
-    .concat([...(stimmenJs + appJs + installJs).matchAll(/'((?:[^'\\\n]|\\.)*)'/g)].map(m => m[1]));
+    .concat([...(stimmenJs + metronomJs + appJs + installJs).matchAll(/'((?:[^'\\\n]|\\.)*)'/g)].map(m => m[1]));
   texte.filter(t => /\S\s+[–—]\s+\S/.test(t)).forEach(t => melde('Gedankenstrich im Text: ' + t.trim().slice(0, 60)));
   // Icons haben die Größe, die das Manifest verspricht
   ObjC.import('AppKit');
@@ -224,6 +232,102 @@ function run() {
   }
   if (INST.inhalt('', false)) melde('Installieren: Hinweis ohne Gerät');
   out.push(geraete.length + ' Geräte für den Hinweis zum Installieren geprüft');
+
+  // ---------------------------------------------------------------- 7. Metronom
+  // Taktarten zur Auswahl, Grundeinstellung 4/4 mit 80 BPM
+  if (M.TAKTARTEN.map(t => t.id).join(' ') !== '2/4 3/4 4/4 6/8' || M.TAKT_STANDARD !== '4/4') melde('Metronom: Taktarten oder Grundeinstellung falsch');
+  const taktKnoepfe = /id="mt-takt"[\s\S]*?<\/div>/.exec(html);
+  const taktReihe = taktKnoepfe ? [...taktKnoepfe[0].matchAll(/data-takt="([^"]+)"/g)].map(m => m[1]).join(' ') : '';
+  if (taktReihe !== '2/4 3/4 4/4 6/8 eigen') melde('Metronom: Knöpfe „' + taktReihe + '“ statt „2/4 3/4 4/4 6/8 eigen“');
+  if (!/mTempo: 80, mTakt: '4\/4'/.test(appJs) || M.BPM_STANDARD !== 80 || M.BPM_MIN !== 30 || M.BPM_MAX !== 250) melde('Metronom: Start nicht mit 4/4 und 80 BPM oder Tempobereich falsch');
+  // Betonung von selbst bei der eigenen Taktart
+  const AUTO = { '7/8': '2+2+3', '5/8': '2+3', '9/8': '3+3+3', '12/8': '3+3+3+3', '6/8': '3+3', '8/8': '2+2+2+2', '11/16': '2+2+2+2+3', '3/8': '3', '5/4': '5', '7/4': '7', '1/4': '1', '3/2': '3' };
+  Object.keys(AUTO).forEach(k => { const [z, n] = k.split('/').map(Number), g = M.autoGruppen(z, n).join('+'); if (g !== AUTO[k]) melde('Metronom: ' + k + ' von selbst ' + g + ' statt ' + AUTO[k]); });
+  // Eingabe der Gruppen
+  const EINGABE = [['2+2+3', 7, '2+2+3'], ['3 2 2', 7, '3+2+2'], ['3,2,2', 7, '3+2+2'], ['3.4', 7, '3+4'], [' 7 ', 7, '7'], ['2 + 5', 7, '2+5'],
+    ['2+2', 7, null], ['', 7, null], ['x', 7, null], ['0+7', 7, null], ['2+2+3+', 7, null], [null, 7, null], ['4+4+4', 12, '4+4+4']];
+  EINGABE.forEach(([text, z, soll]) => { const g = M.liesGruppen(text, z), ist = g ? g.join('+') : null; if (ist !== soll) melde('Metronom: Gruppen „' + text + '“ bei ' + z + ' ergeben ' + ist + ' statt ' + soll); });
+  // Betonungen: E = Eins, G = weitere Gruppe, S = Schlag
+  const kurz = { eins: 'E', gruppe: 'G', schlag: 'S', unter: 'u' };
+  const muster = (t, b) => Array.from({ length: t.zaehler }, (x, j) => kurz[M.art(t, b, j, 0)]).join('');
+  const BETONT = [[{ mTakt: '2/4' }, 'ES', '2/4'], [{ mTakt: '3/4' }, 'ESS', '3/4'], [{ mTakt: '4/4' }, 'ESSS', '4/4'], [{ mTakt: '6/8' }, 'ESSGSS', '6/8'],
+    [{ mTakt: 'quatsch' }, 'ESSS', '4/4'],
+    [{ mTakt: 'eigen', mZaehler: 7, mNenner: 8, mGruppen: '' }, 'ESGSGSS', '7/8 · 2+2+3'],
+    [{ mTakt: 'eigen', mZaehler: 7, mNenner: 8, mGruppen: '3+2+2' }, 'ESSGSGS', '7/8 · 3+2+2'],
+    [{ mTakt: 'eigen', mZaehler: 7, mNenner: 8, mGruppen: '3+3' }, 'ESGSGSS', '7/8 · 2+2+3'],
+    [{ mTakt: 'eigen', mZaehler: 5, mNenner: 4, mGruppen: '' }, 'ESSSS', '5/4'],
+    [{ mTakt: 'eigen', mZaehler: 5, mNenner: 4, mGruppen: '3+2' }, 'ESSGS', '5/4 · 3+2'],
+    [{ mTakt: 'eigen', mZaehler: 1, mNenner: 4, mGruppen: '' }, 'E', '1/4']];
+  BETONT.forEach(([S, soll, name]) => {
+    const t = M.takt(S), ist = muster(t, true);
+    if (ist !== soll || M.taktName(t) !== name) melde('Metronom: ' + JSON.stringify(S) + ' betont ' + ist + ' (' + M.taktName(t) + ') statt ' + soll + ' (' + name + ')');
+    if (muster(t, false) !== 'S'.repeat(t.zaehler)) melde('Metronom: ohne Betonung trotzdem betont bei ' + name);
+  });
+  if (M.teilungNamen(4).join(' ') !== 'Viertel Achtel Triolen' || M.teilungNamen(8).join(' ') !== 'Achtel 16tel Triolen' || M.teilungNamen(2).join(' ') !== 'Halbe Viertel Triolen') melde('Metronom: Namen der Unterteilung falsch');
+  // Zeitplan: jeder Abstand genau 60 / BPM / Unterteilung, der Takt beginnt immer richtig von vorn
+  let mKlicks = 0, mAbw = 0;
+  for (const bpm of [30, 80, 121, 250]) {
+    for (const teilung of [1, 2, 3]) {
+      for (const id of ['2/4', '3/4', '4/4', '6/8']) {
+        const t = M.takt({ mTakt: id }), o = { bpm: bpm, takt: t, teilung: teilung, betonung: true }, schritt = 60 / bpm / teilung, n = t.zaehler * teilung;
+        // wie im Browser: alle 25 ms bis 0,2 s voraus planen
+        const z = { t: 1, pos: 0 }, liste = [];
+        for (let jetzt = 1; jetzt < 31; jetzt += 0.025) liste.push(...M.naechste(z, o, jetzt + 0.2));
+        liste.forEach((k, i) => {
+          mKlicks++;
+          mAbw = Math.max(mAbw, Math.abs(k.t - (1 + i * schritt)));
+          const pos = i % n, soll = pos % teilung ? 'unter' : M.art(t, true, Math.floor(pos / teilung), 0);
+          if (k.schlag !== Math.floor(pos / teilung) || k.unter !== pos % teilung || k.art !== soll) melde('Metronom: ' + id + ' ' + bpm + ' BPM Klick ' + i + ' an falscher Stelle');
+        });
+        if (liste.length < Math.floor(30 / schritt)) melde('Metronom: ' + id + ' ' + bpm + ' BPM zu wenige Klicks');
+      }
+    }
+  }
+  if (mAbw > 1e-9) melde('Metronom: Zeitplan weicht um ' + mAbw + ' s ab');
+  // Tempowechsel mitten im Spielen: keine Lücke, kein doppelter Klick, ab dem nächsten Klick gilt das neue Tempo
+  {
+    const t = M.takt({ mTakt: '4/4' }), z = { t: 0, pos: 0 }, o = { bpm: 120, takt: t, teilung: 1, betonung: true }, liste = [];
+    for (let jetzt = 0; jetzt < 10; jetzt += 0.025) { if (jetzt > 5 && o.bpm === 120) o.bpm = 90; liste.push(...M.naechste(z, o, jetzt + 0.2)); }
+    const abst = liste.slice(1).map((k, i) => +(k.t - liste[i].t).toFixed(9));
+    const wechsel = abst.findIndex(a => Math.abs(a - 2 / 3) < 1e-6);
+    if (wechsel < 0 || abst.slice(0, wechsel).some(a => Math.abs(a - 0.5) > 1e-6) || abst.slice(wechsel).some(a => Math.abs(a - 2 / 3) > 1e-6)) melde('Metronom: Tempowechsel stolpert');
+    if (liste.some((k, i) => k.schlag !== i % 4)) melde('Metronom: Tempowechsel bringt den Takt durcheinander');
+  }
+  // Seite hängt eine halbe Sekunde: verpasste Klicks fallen aus, danach geht es im selben Raster und an der richtigen Stelle im Takt weiter
+  {
+    const t = M.takt({ mTakt: '3/4' }), z = { t: 0, pos: 0 }, o = { bpm: 150, takt: t, teilung: 2, betonung: true }, liste = [], schritt = 0.2;
+    let verpasst = 0;
+    for (let jetzt = 0; jetzt < 6; jetzt += 0.025) {
+      if (jetzt > 2 && jetzt < 2.5) continue;   // hier kommt der Timer nicht dran
+      if (z.t < jetzt + 0.01) verpasst += M.ueberspringen(z, o, jetzt + 0.01);
+      M.naechste(z, o, jetzt + 0.2).forEach(k => { if (k.t < jetzt) melde('Metronom: Klick nach einem Hänger in der Vergangenheit geplant'); liste.push(k); });
+    }
+    const rasterFehler = liste.some(k => { const i = Math.round(k.t / schritt); return Math.abs(k.t - i * schritt) > 1e-6 || k.schlag !== Math.floor((i % 6) / 2) || k.unter !== i % 2; });
+    if (!verpasst || rasterFehler) melde('Metronom: nach einem Hänger nicht im selben Raster weiter (verpasst ' + verpasst + ')');
+  }
+  // Tippen fürs Tempo
+  const tap = ab => { const z = [1000]; ab.forEach(a => z.push(z[z.length - 1] + a)); return M.tapTempo(z); };
+  const TAPS = [[[], null], [[500], 120], [[500, 500, 500], 120], [[600, 610, 590, 600], 100], [[500, 1500, 500, 500], 120],
+    [[500, 2500, 500, 500], 120], [[3000], null], [[100, 100], 250], [[1900, 1900], 32], [[750, 750, 750, 750, 750, 750, 750, 400, 400, 400, 400, 400, 400], 150]];
+  TAPS.forEach(([ab, soll]) => { const ist = tap(ab); if (ist !== soll) melde('Metronom: Tippen ' + ab.join(',') + ' ergibt ' + ist + ' statt ' + soll); });
+  // Klickklänge: Länge, Lautstärke, kein Knacken am Anfang und Ende, Eins höher und lauter als Unterteilung
+  for (const sr of [44100, 48000]) {
+    for (const a of ['eins', 'gruppe', 'schlag', 'unter']) {
+      const d = M.klickDaten(a, sr);
+      let max = 0; for (let j = 0; j < d.length; j++) max = Math.max(max, Math.abs(d[j]));
+      if (d.length !== Math.floor(sr * 0.05) || Math.abs(max - M.KLICKS[a].laut) > 1e-6 || Math.abs(d[0]) > 0.01 || Math.abs(d[d.length - 1]) > 0.001) melde('Metronom: Klick ' + a + ' bei ' + sr + ' Hz falsch');
+    }
+  }
+  const KL = M.KLICKS;
+  if (!(KL.eins.f > KL.gruppe.f && KL.gruppe.f > KL.schlag.f && KL.schlag.f > KL.unter.f && KL.eins.laut > KL.schlag.laut && KL.schlag.laut > KL.unter.laut)) melde('Metronom: Eins nicht höher und lauter als die anderen');
+  if (!(60 / M.BPM_MAX / 3 > 0.05)) melde('Metronom: Klicks überlappen beim schnellsten Tempo');
+  // unbrauchbare Einstellungen fallen auf 80 BPM, 4/4, 7/8 für die eigene Taktart und Viertel zurück
+  {
+    const S = { mTempo: 999, mTakt: '5/4', mZaehler: 40, mNenner: 3, mGruppen: null, mTeilung: 7, mBetonung: 'x' };
+    try { M.einrichten({ S: S, speichern: () => {} }); } catch (e) { /* ohne Seite bricht es nach der Prüfung ab */ }
+    if (S.mTempo !== 80 || S.mTakt !== '4/4' || S.mZaehler !== 7 || S.mNenner !== 8 || S.mGruppen !== '' || S.mTeilung !== 1 || S.mBetonung !== true) melde('Metronom: unbrauchbare Einstellungen ' + JSON.stringify(S));
+  }
+  out.push(mKlicks + ' Klicks im Metronom geplant, größte Abweichung ' + (mAbw * 1e9).toFixed(3).replace('.', ',') + ' ns');
 
   out.push(fehler + ' Fehler');
   return out.join('\n');

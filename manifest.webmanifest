@@ -1,7 +1,7 @@
 {
   "name": "Tuner",
   "short_name": "Tuner",
-  "description": "Stimmgerät für Gitarre und Ukulele mit Zeiger, Referenztönen und Kammerton von 430 bis 450 Hz.",
+  "description": "Stimmgerät für Gitarre und Ukulele mit Zeiger, Referenztönen und Kammerton von 430 bis 450 Hz, dazu ein Metronom.",
   "lang": "de",
   "dir": "ltr",
   "start_url": "./",

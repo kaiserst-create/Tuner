@@ -1,6 +1,6 @@
 # Tuner
 
-Stimmgerät für Gitarre und Ukulele als Web-App. Es ist dasselbe Stimmgerät wie in der App „Songwriting & Chords“, hier als eigene App, die du auf iPhone und iPad installieren kannst.
+Stimmgerät für Gitarre und Ukulele mit Metronom als Web-App. Es ist dasselbe Stimmgerät wie in der App „Songwriting & Chords“, hier als eigene App, die du auf iPhone und iPad installieren kannst.
 
 ## Was die App kann
 
@@ -9,6 +9,11 @@ Stimmgerät für Gitarre und Ukulele als Web-App. Es ist dasselbe Stimmgerät wi
 - **Saiten:** Ein Tipp auf eine Saite spielt ihren Referenzton und hält sie fest, „Auto“ erkennt die Saite selbst. Bleibt eine Saite eine halbe Sekunde im grünen Bereich, bekommt sie einen Haken.
 - **Kammerton:** zwischen 430 und 450 Hz einstellbar. Mit „Anhören“ spielt er als Dauerton wie eine Stimmgabel, bis du auf „Stopp“ tippst (höchstens eine Minute). Verstellst du ihn dabei, hörst du die Änderung sofort.
 - **Mikrofon:** braucht https (zum Beispiel GitHub Pages) und deine Erlaubnis. Die App hört nur zu, solange sie offen ist, und nimmt nichts auf. Im Hintergrund gibt sie das Mikrofon sofort frei.
+- **Metronom:** der vierte Knopf oben neben Ukulele. Ein Tipp auf Frei, Gitarre oder Ukulele führt zurück zum Stimmgerät. Stimmgerät und Metronom laufen nie gleichzeitig, sonst würde das Mikrofon die Klicks hören.
+  - Tempo von 30 bis 250 BPM mit −, + und Regler, Grundeinstellung 80 BPM. Mit „Tippen“ übernimmt es dein Tempo, wenn du ein paar Mal im Takt tippst. Das Tempo zählt die Schläge, die du hörst, bei 6/8 also Achtel.
+  - Taktarten 2/4, 3/4, 4/4 (Grundeinstellung) und 6/8. Unter „Eigene“ stellst du Schläge (1 bis 16) und Notenwert (2, 4, 8, 16) selbst ein und auf Wunsch die Betonung als Gruppen, zum Beispiel 3+2+2. Ohne Eingabe gruppiert es Achtel und Sechzehntel von selbst (7/8 als 2+2+3, 9/8 als 3+3+3), sonst ist nur die Eins betont.
+  - Unterteilung in Schläge, halbe Schläge oder Triolen (bei 4/4 Viertel, Achtel, Triolen). Die Eins ist höher und lauter, „Eins betonen“ schaltet das ab.
+  - Ein Punkt je Schlag leuchtet im Takt. Solange es läuft, bleibt der Bildschirm an. Am Computer startet und stoppt die Leertaste. Geht die App in den Hintergrund, hört es auf.
 - **Hell und dunkel** zum Umschalten, folgt sonst der Systemeinstellung.
 - **Offline:** Nach dem ersten Öffnen läuft alles ohne Internet.
 - **Hinweis zum Installieren:** wie in der Songwriting-App. Auf iPhone, iPad und Android im Browser kommt kurz nach dem Start unten ein Hinweis mit den Schritten, passend zum Browser.
@@ -31,7 +36,7 @@ Dann `http://localhost:8766` öffnen.
 osascript -l JavaScript skripte/pruefen.js
 ```
 
-Das Skript erzeugt gezupfte Saiten in allen Stimmungen mit den Kammertönen 430, 440 und 450 Hz und prüft, ob die Erkennung sie auf 1 Cent genau trifft. Dazu jeden Halbton im freien Modus, die Referenztöne, Stille und Rauschen. Außerdem prüft es die Reihenfolge Frei, Gitarre, Ukulele, den Start auf Frei, ob jede Datei der Seite in der Offline-Liste steht, die Syntax der Skripte, ob jede gesuchte ID in `index.html` steht, Gedankenstriche in den Texten, die Größen der Icons und für 18 Geräte und Browser, ob der richtige Hinweis zum Installieren kommt. Es muss mit 0 Fehlern enden.
+Das Skript erzeugt gezupfte Saiten in allen Stimmungen mit den Kammertönen 430, 440 und 450 Hz und prüft, ob die Erkennung sie auf 1 Cent genau trifft. Dazu jeden Halbton im freien Modus, die Referenztöne, Stille und Rauschen. Außerdem prüft es die Reihenfolge Frei, Gitarre, Ukulele, den Start auf Frei, ob jede Datei der Seite in der Offline-Liste steht, die Syntax der Skripte, ob jede gesuchte ID in `index.html` steht, Gedankenstriche in den Texten, die Größen der Icons und für 18 Geräte und Browser, ob der richtige Hinweis zum Installieren kommt. Fürs Metronom plant es über 5000 Klicks in allen Taktarten, Tempi und Unterteilungen und prüft, ob jeder auf die Nanosekunde sitzt und richtig betont ist. Dazu Tempowechsel im Lauf, eine hängende Seite, die eigene Taktart mit Gruppen, das Tippen fürs Tempo und die Klickklänge. Es muss mit 0 Fehlern enden.
 
 Die Tonerkennung sucht zwischen 50 und 1500 Hz. Das reicht vom tiefen D der Gitarre (73 Hz) bis E6 (1318 Hz). Darunter misst sie ungenau, darüber zeigt sie den Ton eine Oktave zu tief.
 
@@ -39,9 +44,10 @@ Die Tonerkennung sucht zwischen 50 und 1500 Hz. Das reicht vom tiefen D der Gita
 
 ```
 index.html, style.css         Oberfläche
-app.js                        Zustand, Hell/Dunkel, Hintergrund, Offline
+app.js                        Zustand, Hell/Dunkel, Umschalten, Hintergrund, Offline
 stimmen.js                    Stimmgerät: Stimmungen, Tonerkennung, Seite
-klang.js                      Klangausgabe für Referenztöne und Kammerton
+metronom.js                   Metronom: Taktarten, Zeitplan, Tippen, Klicks, Ansicht
+klang.js                      Klangausgabe für Referenztöne, Kammerton und Klicks
 installieren.js               Hinweis zum Installieren auf iPhone, iPad und Android
 sw.js, manifest.webmanifest   Offline-Modus und Installation
 icons/                        App-Icons
@@ -55,7 +61,7 @@ Die App muss einmal im Internet liegen, damit Safari sie installieren kann. GitH
 **Ohne Git (am einfachsten):**
 
 1. Auf github.com ein neues Repository anlegen, zum Beispiel `tuner`, Sichtbarkeit **Public**.
-2. Auf der leeren Repository-Seite „uploading an existing file“ wählen und diese Dateien hineinziehen: `index.html`, `style.css`, `app.js`, `stimmen.js`, `klang.js`, `installieren.js`, `sw.js`, `manifest.webmanifest` und den Ordner `icons`. Mit „Commit changes“ bestätigen.
+2. Auf der leeren Repository-Seite „uploading an existing file“ wählen und diese Dateien hineinziehen: `index.html`, `style.css`, `app.js`, `stimmen.js`, `metronom.js`, `klang.js`, `installieren.js`, `sw.js`, `manifest.webmanifest` und den Ordner `icons`. Mit „Commit changes“ bestätigen.
 3. Unter **Settings → Pages** bei „Source“ „Deploy from a branch“ wählen, Branch `main`, Ordner `/ (root)`, speichern.
 4. Nach ein bis zwei Minuten läuft die App unter `https://DEIN-NAME.github.io/tuner/`.
 
@@ -72,6 +78,6 @@ Die App muss einmal im Internet liegen, damit Safari sie installieren kann. GitH
 
 Wer die Seite auf iPhone, iPad oder Android im Browser öffnet, bekommt nach kurzer Zeit unten einen Hinweis mit genau diesen Schritten, passend zum Browser. In Chrome, Edge und Samsung Internet auf Android installiert ein Knopf die App direkt. Öffnet jemand den Link in Instagram, Facebook oder einer anderen App, sagt der Hinweis, dass die Seite erst in Safari oder Chrome geöffnet werden muss. Wer den Hinweis schließt, sieht ihn nicht mehr von selbst und findet ihn unten im Fuß unter „Tuner als App installieren“. In der installierten App und auf dem Computer erscheint er nicht.
 
-Die Einstellungen (Instrument, Stimmung, Kammerton, Hell/Dunkel, geschlossener Hinweis) speichert jedes Gerät für sich.
+Die Einstellungen (Instrument, Stimmung, Kammerton, Metronom, zuletzt gewählte Ansicht, Hell/Dunkel, geschlossener Hinweis) speichert jedes Gerät für sich.
 
 Updates: Geänderte Dateien hochladen und in `sw.js` die `VERSION` erhöhen. Die installierte App holt sich die neue Fassung, sobald sie mit Internet geöffnet wird, und zeigt sie beim nächsten Start.

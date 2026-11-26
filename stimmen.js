@@ -245,8 +245,8 @@ var SC_STIMMEN = (function () {
 
   // ---------------------------------------------------- Aufbau
   function render() {
-    el.inst.querySelectorAll('button').forEach(function (b) {
-      b.setAttribute('aria-checked', String(b.dataset.wert === modus()));
+    el.inst.querySelectorAll('button[data-wert]').forEach(function (b) {   // der Knopf Metronom gehört app.js
+      b.setAttribute('aria-checked', String(A.S.ansicht !== 'metronom' && b.dataset.wert === modus()));
     });
     el.stimmungFeld.hidden = frei();
     if (!frei()) {
@@ -500,7 +500,7 @@ var SC_STIMMEN = (function () {
     };
     skala();
     el.inst.addEventListener('click', function (e) {
-      var b = e.target.closest('button');
+      var b = e.target.closest('button[data-wert]');
       if (!b || b.dataset.wert === S.stInst) return;
       S.stInst = b.dataset.wert; A.speichern(); neuAnfangen(); render();
     });
@@ -534,11 +534,18 @@ var SC_STIMMEN = (function () {
     render();
     hinweis('');
   }
+  // Wechsel zum Metronom (app.js): Mikrofon, Kammerton und Referenzton aus
+  function anhalten() {
+    ktStopp();
+    if (mic) mikroStopp();
+    refText = ''; refBis = 0;
+    SC.Klang.stopp();
+  }
 
   return {
     STIMMUNGEN: STIMMUNGEN, KT_MIN: KT_MIN, KT_MAX: KT_MAX, KT_STANDARD: KT_STANDARD,
     saite: saite, stimmung: stimmung, frequenz: frequenz, midiVon: midiVon, tonName: tonName, bereich: bereich,
     erkenne: erkenne, auswerten: auswerten, zupfDaten: zupfDaten,
-    einrichten: einrichten,
+    einrichten: einrichten, anhalten: anhalten, auffrischen: function () { if (el.inst) render(); },
   };
 })();
