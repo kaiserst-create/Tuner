@@ -158,7 +158,7 @@ var SC_METRONOM = (function () {
     el.gruppenHinweis.classList.toggle('warm', falsch);
     el.gruppenHinweis.textContent = falsch
       ? 'Die Gruppen müssen zusammen ' + S.mZaehler + ' ergeben. Bis dahin gilt ' + (auto.length > 1 ? gruppenText(auto) : 'nur die Eins') + '.'
-      : 'Betonte Gruppen mit Plus, zum Beispiel 3+2+2. Leer lassen: ' + (auto.length > 1 ? gruppenText(auto) : 'nur die Eins') + '.';
+      : 'Betonte Gruppen, zum Beispiel 3+2+2 oder 3,2,2. Leer lassen: ' + (auto.length > 1 ? gruppenText(auto) : 'nur die Eins') + '.';
   }
   function renderTakt() {   // Name der Taktart und ein Punkt je Schlag, betonte größer
     var t = takt(A.S), h = '';
@@ -316,11 +316,15 @@ var SC_METRONOM = (function () {
     el.tippen.addEventListener('pointerdown', tippe);
     el.tippen.addEventListener('click', function (e) { if (e.detail === 0) tippe(); });   // Tastatur
     el.start.onclick = function () { if (lauf.an) stopp(); else start(); };
+    // Leertaste startet und stoppt, auch wenn gerade ein anderer Knopf den Fokus hat (sonst würde sie den
+    // zuletzt angeklickten Knopf noch einmal drücken). Ausnahmen: Eingabefeld und der Start-Knopf selbst.
+    // Knöpfe gehen mit der Eingabetaste, „Tippen“ also auch.
     document.addEventListener('keydown', function (e) {
-      if (S.ansicht !== 'metronom' || e.key !== ' ' || e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
-      if (e.target && e.target.closest && e.target.closest('input, select, textarea, button')) return;
+      if (S.ansicht !== 'metronom' || e.key !== ' ' || e.metaKey || e.ctrlKey || e.altKey) return;
+      var t = e.target;
+      if (t === el.start || (t && t.closest && t.closest('input[type="text"], select, textarea'))) return;
       e.preventDefault();
-      if (lauf.an) stopp(); else start();
+      if (!e.repeat) { if (lauf.an) stopp(); else start(); }
     });
     document.addEventListener('visibilitychange', function () {
       if (document.hidden && lauf.an) stopp('Angehalten, weil die App im Hintergrund war.');

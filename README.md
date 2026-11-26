@@ -11,9 +11,9 @@ Stimmgerät für Gitarre und Ukulele mit Metronom als Web-App. Es ist dasselbe S
 - **Mikrofon:** braucht https (zum Beispiel GitHub Pages) und deine Erlaubnis. Die App hört nur zu, solange sie offen ist, und nimmt nichts auf. Im Hintergrund gibt sie das Mikrofon sofort frei.
 - **Metronom:** der vierte Knopf oben neben Ukulele. Ein Tipp auf Frei, Gitarre oder Ukulele führt zurück zum Stimmgerät. Stimmgerät und Metronom laufen nie gleichzeitig, sonst würde das Mikrofon die Klicks hören.
   - Tempo von 30 bis 250 BPM mit −, + und Regler, Grundeinstellung 80 BPM. Mit „Tippen“ übernimmt es dein Tempo, wenn du ein paar Mal im Takt tippst. Das Tempo zählt die Schläge, die du hörst, bei 6/8 also Achtel.
-  - Taktarten 2/4, 3/4, 4/4 (Grundeinstellung) und 6/8. Unter „Eigene“ stellst du Schläge (1 bis 16) und Notenwert (2, 4, 8, 16) selbst ein und auf Wunsch die Betonung als Gruppen, zum Beispiel 3+2+2. Ohne Eingabe gruppiert es Achtel und Sechzehntel von selbst (7/8 als 2+2+3, 9/8 als 3+3+3), sonst ist nur die Eins betont.
+  - Taktarten 2/4, 3/4, 4/4 (Grundeinstellung) und 6/8. Unter „Eigene“ stellst du Schläge (1 bis 16) und Notenwert (2, 4, 8, 16) selbst ein und auf Wunsch die Betonung als Gruppen, zum Beispiel 3+2+2 oder auf dem iPhone mit Komma 3,2,2. Ohne Eingabe gruppiert es Achtel und Sechzehntel von selbst (7/8 als 2+2+3, 9/8 als 3+3+3), sonst ist nur die Eins betont.
   - Unterteilung in Schläge, halbe Schläge oder Triolen (bei 4/4 Viertel, Achtel, Triolen). Die Eins ist höher und lauter, „Eins betonen“ schaltet das ab.
-  - Ein Punkt je Schlag leuchtet im Takt. Solange es läuft, bleibt der Bildschirm an. Am Computer startet und stoppt die Leertaste. Geht die App in den Hintergrund, hört es auf.
+  - Ein Punkt je Schlag leuchtet im Takt. Solange es läuft, bleibt der Bildschirm an. Am Computer startet und stoppt die Leertaste, egal welcher Knopf zuletzt angeklickt war. Geht die App in den Hintergrund, hört es auf.
 - **Hell und dunkel** zum Umschalten, folgt sonst der Systemeinstellung.
 - **Offline:** Nach dem ersten Öffnen läuft alles ohne Internet.
 - **Hinweis zum Installieren:** wie in der Songwriting-App. Auf iPhone, iPad und Android im Browser kommt kurz nach dem Start unten ein Hinweis mit den Schritten, passend zum Browser.

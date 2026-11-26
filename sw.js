@@ -7,7 +7,7 @@
 // Speicher. Deshalb löscht dieser Service Worker nur eigene Speicher (tuner-…) und füllt seinen eigenen
 // wieder auf, falls eine andere App ihn gelöscht hat.
 
-var VERSION = 'tuner-2026-11-26-3';
+var VERSION = 'tuner-2026-11-26-4';
 var DATEIEN = [
   './', 'index.html', 'style.css', 'klang.js', 'stimmen.js', 'metronom.js', 'installieren.js', 'app.js', 'manifest.webmanifest',
   'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png',
